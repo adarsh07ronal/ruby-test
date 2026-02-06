@@ -150,3 +150,37 @@ Cancellation does not immediately revoke access.
 ## API Endpoints
 
 ### Provisional Subscription Start
+
+POST /api/subscriptions/provisional
+
+Used by the client immediately after payment completion.
+
+---
+
+### Apple Webhook
+
+POST /api/apple/webhook
+
+Receives PURCHASE / RENEW / CANCEL notifications from Apple.
+
+---
+
+## Extensibility
+
+This design allows easy extension for:
+
+- Additional providers (Google Play, Stripe)
+- New subscription states
+- Grace periods and retries
+- Revenue analytics and reporting
+
+---
+
+## Design Principles
+
+- Event-driven architecture
+- Idempotent processing
+- Clear separation of concerns
+- Production-ready database constraints
+- Predictable state transitions
+
