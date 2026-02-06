@@ -10,9 +10,24 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_06_063825) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_06_064632) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+
+  create_table "subscription_events", force: :cascade do |t|
+    t.decimal "amount", precision: 8, scale: 2
+    t.datetime "created_at", null: false
+    t.string "currency"
+    t.string "event_type", null: false
+    t.datetime "expires_date"
+    t.string "product_id"
+    t.datetime "purchase_date"
+    t.bigint "subscription_id"
+    t.string "transaction_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["subscription_id"], name: "index_subscription_events_on_subscription_id"
+    t.index ["transaction_id", "event_type", "purchase_date"], name: "idx_subscription_events_idempotency", unique: true
+  end
 
   create_table "subscriptions", force: :cascade do |t|
     t.datetime "created_at", null: false
@@ -25,4 +40,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_06_063825) do
     t.string "user_id", null: false
     t.index ["transaction_id"], name: "index_subscriptions_on_transaction_id", unique: true
   end
+
+  add_foreign_key "subscription_events", "subscriptions"
 end
