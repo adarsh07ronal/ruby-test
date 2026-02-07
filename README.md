@@ -1,28 +1,3 @@
-# README
-
-This README would normally document whatever steps are necessary to get the
-application up and running.
-
-Things you may want to cover:
-
-* Ruby version
-
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
-
 # Subscription Management API (Ruby on Rails)
 
 This project implements a subscription management system for a video
@@ -35,6 +10,7 @@ idempotent, and extensible way.
 
 # Demo Video
 https://youtu.be/ctwmMBSnBrY
+
 ---
 
 ## Requirements Summary
@@ -54,6 +30,62 @@ https://youtu.be/ctwmMBSnBrY
 ## Architecture Overview
 
 This system separates **current subscription state** from **billing / webhook events**.
+
+## Project Structure
+
+The application follows a layered structure to keep responsibilities clear
+and make the system easy to extend and maintain.
+
+```text
+app/
+├── controllers/
+│   ├── api/
+│   │   ├── subscriptions_controller.rb
+│   │   └── apple/
+│   │       └── webhooks_controller.rb
+│   └── application_controller.rb
+│
+├── models/
+│   ├── subscription.rb
+│   └── subscription_event.rb
+│
+├── domains/
+│   └── subscriptions/
+│       └── state_machine.rb
+│
+db/
+├── migrate/
+│   ├── create_subscriptions.rb
+│   └── create_subscription_events.rb
+│
+config/
+│   └── routes.rb
+│
+README.md
+
+
+---
+
+## Responsibilities
+
+```md
+### Responsibilities
+
+- Controllers  
+  - Handle HTTP requests and responses  
+  - Perform request orchestration only  
+  - No business rules  
+
+- Models  
+  - Persist current subscription state  
+  - Persist immutable Apple webhook events  
+  - Provide access logic (`can_watch?`)  
+
+- Domain Layer (State Machine)  
+  - Centralizes subscription lifecycle rules  
+  - Applies PURCHASE / RENEW / CANCEL events  
+  - Keeps controllers thin and logic testable  
+
 
 ### Core Models
 
@@ -186,9 +218,11 @@ This design allows easy extension for:
 - Production-ready database constraints
 - Predictable state transitions
 
-## RSpec Test
+## Manual Test Cases
 
 Test cases
+
+
 1) 
 curl -X POST http://localhost:3000/api/subscriptions/provisional \
   -H "Content-Type: application/json" \
