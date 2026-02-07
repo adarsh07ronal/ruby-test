@@ -33,6 +33,8 @@ manages provisional subscription starts, Apple webhook notifications
 (PURCHASE / RENEW / CANCEL), renewals, and cancellations in a robust,
 idempotent, and extensible way.
 
+# Demo Video
+https://youtu.be/ctwmMBSnBrY
 ---
 
 ## Requirements Summary
@@ -183,4 +185,112 @@ This design allows easy extension for:
 - Clear separation of concerns
 - Production-ready database constraints
 - Predictable state transitions
+
+## RSpec Test
+
+Test cases
+1) 
+curl -X POST http://localhost:3000/api/subscriptions/provisional \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "user_test_1",
+    "transaction_id": "tx_test_001",
+    "product_id": "com.samansa.subscription.monthly"
+  }'
+
+rails console
+sub = Subscription.find_by(transaction_id: "tx_test_001")
+pp sub
+
+
+2) 
+curl -X POST http://localhost:3000/api/apple/webhook \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "PURCHASE",
+    "transaction_id": "tx_test_001",
+    "product_id": "com.samansa.subscription.monthly",
+    "amount": "3.9",
+    "currency": "USD",
+    "purchase_date": "2026-02-01T00:00:00Z",
+    "expires_date": "2026-03-01T00:00:00Z"
+  }'
+
+rails console
+sub.reload
+pp sub
+
+3) 
+curl -X POST http://localhost:3000/api/apple/webhook \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "PURCHASE",
+    "transaction_id": "tx_test_001",
+    "product_id": "com.samansa.subscription.monthly",
+    "amount": "3.9",
+    "currency": "USD",
+    "purchase_date": "2026-02-01T00:00:00Z",
+    "expires_date": "2026-03-01T00:00:00Z"
+  }'
+
+rails console
+SubscriptionEvent.where(transaction_id: "tx_test_001").count
+
+4) 
+curl -X POST http://localhost:3000/api/apple/webhook \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "RENEW",
+    "transaction_id": "tx_test_001",
+    "product_id": "com.samansa.subscription.monthly",
+    "amount": "3.9",
+    "currency": "USD",
+    "purchase_date": "2026-03-01T00:00:00Z",
+    "expires_date": "2026-04-01T00:00:00Z"
+  }'
+
+rails console
+sub.reload
+
+5) 
+curl -X POST http://localhost:3000/api/apple/webhook \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "CANCEL",
+    "transaction_id": "tx_test_001",
+    "product_id": "com.samansa.subscription.monthly",
+    "purchase_date": "2026-03-01T00:00:00Z"
+  }'
+
+rails console
+sub.reload
+
+5) 
+rails console
+sub.update!(current_period_end: 1.day.ago)
+sub.can_watch?
+
+=> false
+
+6) 
+curl -X POST http://localhost:3000/api/apple/webhook \
+  -H "Content-Type: application/json" \
+  -d '{
+    "type": "PURCHASE",
+    "transaction_id": "tx_test_002",
+    "product_id": "com.samansa.subscription.monthly",
+    "amount": "3.9",
+    "currency": "USD",
+    "purchase_date": "2026-02-01T00:00:00Z",
+    "expires_date": "2026-03-01T00:00:00Z"
+  }'
+
+rails console
+Subscription.find_by(transaction_id: "tx_test_002").can_watch?
+
+ 
+
+
+
+
 
